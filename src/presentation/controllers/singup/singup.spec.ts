@@ -1,6 +1,6 @@
 import { SingUpController } from './singup'
 import { MissingParamError, InvalidParamError, ServerError } from '../../errors'
-import { EmailValidator, AccountModel, AddAccount, AddAccountModel } from './singup-protocols'
+import { EmailValidator, AddAccount, AccountModel, AddAccountModel } from './singup-protocols'
 
 const makeEmailValidator = (): EmailValidator => {
   class EmailValidatorStub implements EmailValidator {
@@ -13,7 +13,7 @@ const makeEmailValidator = (): EmailValidator => {
 
 const MakeAddAccount = (): AddAccount => { // AddAccount não fica com protocolos pq é regra/uses case (criar layer Domain)
   class AddAccountStub implements AddAccount {
-    add (email: AddAccountModel): AccountModel {
+    add (account: AddAccountModel): AccountModel {
       const fakeAccount = {
         id: 'valid_id',
         name: 'valid_name',
@@ -152,6 +152,25 @@ describe('SingUp Controller', () => {
   test('should return 500 if emailValidator throws', () => {
     const { sut, emailValidatorStub } = makeSut()
     jest.spyOn(emailValidatorStub, 'isValid').mockImplementationOnce(() => {
+      throw new Error()
+    })
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'any@gmail.com',
+        password: 'any_passord',
+        passwordConfirmation: 'any_passord'
+
+      }
+    }
+    const httpResponse = sut.handle(httpRequest)
+    expect(httpResponse.statusCode).toBe(500)
+    expect(httpResponse.body).toEqual(new ServerError())
+  })
+
+  test('should return 500 if AddAccount throws', () => {
+    const { sut, addAccountStub } = makeSut()
+    jest.spyOn(addAccountStub, 'add').mockImplementationOnce(() => {
       throw new Error()
     })
     const httpRequest = {
