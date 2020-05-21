@@ -16,15 +16,6 @@ const makeEmailValidator = (): EmailValidator => {
   return new EmailValidatorStub()
 }
 
-const makeEmailValidatorWithError = (): EmailValidator => {
-  class EmailValidatorStub implements EmailValidator {
-    isValid (email: String): boolean {
-      throw new Error()
-    }
-  }
-  return new EmailValidatorStub()
-}
-
 const makeSut = (): SutTypes => { // mocka(stub) pra ter só o retorno
   const emailValidatorStub = makeEmailValidator()
   const sut = new SingUpController(emailValidatorStub)
@@ -41,7 +32,7 @@ describe('SingUp Controller', () => {
       body: {
         email: 'any@gmail.com',
         password: 'any_passord',
-        passwordConfirmation: 'any_password'
+        passwordConfirmation: 'any_passord'
       }
     }
     const httpResponse = sut.handle(httpRequest)
@@ -55,7 +46,7 @@ describe('SingUp Controller', () => {
       body: {
         name: 'any_name',
         password: 'any_passord',
-        passwordConfirmation: 'any_password'
+        passwordConfirmation: 'any_passord'
       }
     }
     const httpResponse = sut.handle(httpRequest)
@@ -69,7 +60,7 @@ describe('SingUp Controller', () => {
       body: {
         name: 'any_name',
         email: 'any@gmail.com',
-        passwordConfirmation: 'any_password'
+        passwordConfirmation: 'any_passord'
       }
     }
     const httpResponse = sut.handle(httpRequest)
@@ -77,7 +68,7 @@ describe('SingUp Controller', () => {
     expect(httpResponse.body).toEqual(new MissingParamError('password'))
   })
 
-  test('should return 400 if no passwordConfirmation is provided', () => {
+  test('should return 400 if no password confirmation is provided', () => {
     const { sut } = makeSut()
     const httpRequest = {
       body: {
@@ -91,6 +82,22 @@ describe('SingUp Controller', () => {
     expect(httpResponse.body).toEqual(new MissingParamError('passwordConfirmation'))
   })
 
+  test('should return 400 if password confirmation fails', () => {
+    const { sut } = makeSut()
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'any@gmail.com',
+        password: 'any_passord',
+        passwordConfirmation: 'invalid_passord'
+
+      }
+    }
+    const httpResponse = sut.handle(httpRequest)
+    expect(httpResponse.statusCode).toBe(400)
+    expect(httpResponse.body).toEqual(new InvalidParamError('passwordConfirmation'))
+  })
+
   test('should return 400 if invalid email is provided', () => {
     const { sut, emailValidatorStub } = makeSut()
     jest.spyOn(emailValidatorStub, 'isValid').mockReturnValueOnce(false)
@@ -99,7 +106,7 @@ describe('SingUp Controller', () => {
         name: 'any_name',
         email: 'Invalid_any@gmail.com',
         password: 'any_passord',
-        passwordConfirmation: 'any_password'
+        passwordConfirmation: 'any_passord'
 
       }
     }
@@ -116,7 +123,7 @@ describe('SingUp Controller', () => {
         name: 'any_name',
         email: 'any@gmail.com',
         password: 'any_passord',
-        passwordConfirmation: 'any_password'
+        passwordConfirmation: 'any_passord'
 
       }
     }
@@ -125,16 +132,16 @@ describe('SingUp Controller', () => {
   })
 
   test('should return 500 if emailValidator throws', () => {
-    const emailValidatorStub = makeEmailValidatorWithError()
-    const sut = new SingUpController(emailValidatorStub)
-
-    // jest.spyOn(emailValidatorStub, 'isValid')
+    const { sut, emailValidatorStub } = makeSut()
+    jest.spyOn(emailValidatorStub, 'isValid').mockImplementationOnce(() => {
+      throw new Error()
+    })
     const httpRequest = {
       body: {
         name: 'any_name',
         email: 'any@gmail.com',
         password: 'any_passord',
-        passwordConfirmation: 'any_password'
+        passwordConfirmation: 'any_passord'
 
       }
     }
