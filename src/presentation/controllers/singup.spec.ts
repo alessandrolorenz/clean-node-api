@@ -2,18 +2,31 @@ import { SingUpController } from './singup'
 import { MissingParamError, InvalidParamError, ServerError } from '../errors'
 import { EmailValidator } from '../protocols'
 
-interface SutTypes {
+interface SutTypes { // sut = system under test
   sut: SingUpController
   emailValidatorStub: EmailValidator
 }
 
-const makeSut = (): SutTypes => { // mocka(stub) pra ter só o retorno
+const makeEmailValidator = (): EmailValidator => {
   class EmailValidatorStub implements EmailValidator {
     isValid (email: String): boolean {
       return true
     }
   }
-  const emailValidatorStub = new EmailValidatorStub()
+  return new EmailValidatorStub()
+}
+
+const makeEmailValidatorWithError = (): EmailValidator => {
+  class EmailValidatorStub implements EmailValidator {
+    isValid (email: String): boolean {
+      throw new Error()
+    }
+  }
+  return new EmailValidatorStub()
+}
+
+const makeSut = (): SutTypes => { // mocka(stub) pra ter só o retorno
+  const emailValidatorStub = makeEmailValidator()
   const sut = new SingUpController(emailValidatorStub)
   return {
     sut,
@@ -112,15 +125,10 @@ describe('SingUp Controller', () => {
   })
 
   test('should return 500 if emailValidator throws', () => {
-    class EmailValidatorStub implements EmailValidator {
-      isValid (email: String): boolean {
-        throw new Error()
-      }
-    }
-    const emailValidatorStub = new EmailValidatorStub()
+    const emailValidatorStub = makeEmailValidatorWithError()
     const sut = new SingUpController(emailValidatorStub)
 
-    jest.spyOn(emailValidatorStub, 'isValid')
+    // jest.spyOn(emailValidatorStub, 'isValid')
     const httpRequest = {
       body: {
         name: 'any_name',
