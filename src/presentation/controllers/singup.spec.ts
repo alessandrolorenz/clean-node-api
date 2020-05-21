@@ -14,7 +14,6 @@ const makeSut = (): SutTypes => { // mocka(stub) pra ter só o retorno
       return true
     }
   }
-
   const emailValidatorStub = new EmailValidatorStub()
   const sut = new SingUpController(emailValidatorStub)
   return {
@@ -86,7 +85,7 @@ describe('SingUp Controller', () => {
     const httpRequest = {
       body: {
         name: 'any_name',
-        email: 'any@gmail.com',
+        email: 'Invalid_any@gmail.com',
         password: 'any_passord',
         passwordConfirmation: 'any_password'
 
@@ -95,5 +94,21 @@ describe('SingUp Controller', () => {
     const httpResponse = sut.handle(httpRequest)
     expect(httpResponse.statusCode).toBe(400)
     expect(httpResponse.body).toEqual(new InvalidParamError('email'))
+  })
+
+  test('should call EmailValidator with correct email', () => {
+    const { sut, emailValidatorStub } = makeSut()
+    const isValid = jest.spyOn(emailValidatorStub, 'isValid')
+    const httpRequest = {
+      body: {
+        name: 'any_name',
+        email: 'any@gmail.com',
+        password: 'any_passord',
+        passwordConfirmation: 'any_password'
+
+      }
+    }
+    sut.handle(httpRequest)
+    expect(isValid).toBeCalledWith('any@gmail.com')
   })
 })
