@@ -8,5 +8,5 @@ export interface AddAccountModel {
 
 // AddAccountModel é especifico daqui dentro/ cria aqui mesmo
 export interface AddAccount {
-  add(account: AddAccountModel): AccountModel // Este é o BD mesmo por exemplo
+  add(account: AddAccountModel): Promise<AccountModel> // Este é o BD mesmo por exemplo
 }
