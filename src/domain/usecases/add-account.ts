@@ -1,9 +1,9 @@
 import { AccountModel } from '../models/accout'
 
 export interface AddAccountModel {
-  name: String
-  email: String
-  password: String
+  name: string
+  email: string
+  password: string
 }
 
 // AddAccountModel é especifico daqui dentro/ cria aqui mesmo
