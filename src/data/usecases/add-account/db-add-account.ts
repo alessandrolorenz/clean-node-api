@@ -13,8 +13,8 @@ export class DbAddAccount implements AddAccount {
   // erros são tratados no controller com o try catch (deve ser feito um teste garantindo que não sera tratado aqui)
   async add (accountData: AddAccountModel): Promise<AccountModel> {
     const hashedPassowrd = await this.encrypter.encrypt(accountData.password)
-    await this.addAccountRepository.add(Object.assign({}, accountData, { password: hashedPassowrd }))
+    const account = await this.addAccountRepository.add(Object.assign({}, accountData, { password: hashedPassowrd }))
     // Obj.assign = o {} cria um novo obj ({} garante que não vai alterar o obj passado, o obj, e o valor a substituir)
-    return new Promise(resolve => resolve(null))
+    return account
   }
 }
