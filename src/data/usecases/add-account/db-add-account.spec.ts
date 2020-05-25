@@ -1,31 +1,50 @@
+import { AddAccountModel, AccountModel, AddAccountRepository, Encrypter } from './add-account-protocols'
 import { DbAddAccount } from './db-add-account'
-import { Encrypter } from './add-account-protocols'
-
-interface SutTypes {
-  sut: DbAddAccount
-  encrypertStub: Encrypter
-}
 
 const makeEmcrypter = (): Encrypter => {
-  class EncrypterStub {
+  class EncrypterStub implements Encrypter {
     async encrypt (value: string): Promise<string> {
-      return new Promise(resolve => resolve('hashedPassorwd'))
+      return new Promise(resolve => resolve('hashed_password'))
     }
   }
   return new EncrypterStub()
 }
 
+const makeAddAccountRepository = (): AddAccountRepository => {
+  class AddAccountRepositoryrStub implements AddAccountRepository {
+    async add (accountData: AddAccountModel): Promise<AccountModel> {
+      const fakeAccount = {
+        id: 'valid_id',
+        name: 'valid_name',
+        email: 'valid_email@gmail.com',
+        password: 'hashed_password'
+      }
+      return new Promise(resolve => resolve(fakeAccount))
+    }
+  }
+  return new AddAccountRepositoryrStub()
+}
+
+interface SutTypes {
+  sut: DbAddAccount
+  encrypertStub: Encrypter
+  addAccountRepositoryrStub: AddAccountRepository
+
+}
+
 const makeSut = (): SutTypes => {
   const encrypertStub = makeEmcrypter()
-  const sut = new DbAddAccount(encrypertStub)
+  const addAccountRepositoryrStub = makeAddAccountRepository()
+  const sut = new DbAddAccount(encrypertStub, addAccountRepositoryrStub)
   return {
     sut,
-    encrypertStub
+    encrypertStub,
+    addAccountRepositoryrStub
   }
 }
 
 describe('DbAddAccount UseCase', () => {
-  test('Should call Encrypter with correct passowr', async () => {
+  test('Should call Encrypter with correct passowrd', async () => {
     const { sut, encrypertStub } = makeSut()
     const encryptSpy = jest.spyOn(encrypertStub, 'encrypt')
     const accountData = {
@@ -48,5 +67,21 @@ describe('DbAddAccount UseCase', () => {
     // não da pra retornar diretamente pr esta retornando uma excessão
     const promise = sut.add(accountData) // sem await
     await expect(promise).rejects.toThrow()
+  })
+
+  test('Should call AddAccountReposytory with corretc values', async () => {
+    const { sut, addAccountRepositoryrStub } = makeSut()
+    const addSpy = jest.spyOn(addAccountRepositoryrStub, 'add')
+    const accountData = {
+      name: 'valid_name',
+      email: 'valid_email@gmail.com',
+      password: 'valid_password'
+    }
+    await sut.add(accountData)
+    expect(addSpy).toHaveBeenCalledWith({
+      name: 'valid_name',
+      email: 'valid_email@gmail.com',
+      password: 'hashed_password'
+    })
   })
 })
