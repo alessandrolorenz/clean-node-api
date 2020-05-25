@@ -56,7 +56,7 @@ describe('DbAddAccount UseCase', () => {
     expect(encryptSpy).toHaveBeenCalledWith('valid_password')
   })
 
-  test('Should throws if Encrypter with throws', async () => {
+  test('Should throws if Encrypter throws', async () => {
     const { sut, encrypertStub } = makeSut()
     jest.spyOn(encrypertStub, 'encrypt').mockReturnValueOnce(new Promise((resolve, reject) => reject(new Error())))
     const accountData = {
@@ -83,5 +83,18 @@ describe('DbAddAccount UseCase', () => {
       email: 'valid_email@gmail.com',
       password: 'hashed_password'
     })
+  })
+
+  test('Should throws if DbAddAccount throws', async () => {
+    const { sut, addAccountRepositoryrStub } = makeSut()
+    jest.spyOn(addAccountRepositoryrStub, 'add').mockReturnValueOnce(new Promise((resolve, reject) => reject(new Error())))
+    const accountData = {
+      name: 'valid_name',
+      email: 'valid_email@gmail.com',
+      password: 'valid_password'
+    }
+    // não da pra retornar diretamente pr esta retornando uma excessão
+    const promise = sut.add(accountData) // sem await
+    await expect(promise).rejects.toThrow()
   })
 })
