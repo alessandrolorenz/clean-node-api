@@ -1,4 +1,4 @@
-import { SingUpController } from './singup'
+import { SignUpController } from './singup'
 import { MissingParamError, InvalidParamError, ServerError } from '../../errors'
 import { EmailValidator, AddAccount, AccountModel, AddAccountModel } from './singup-protocols'
 
@@ -27,7 +27,7 @@ const MakeAddAccount = (): AddAccount => { // AddAccount não fica com protocolo
 }
 
 interface SutTypes { // sut = system under test
-  sut: SingUpController
+  sut: SignUpController
   emailValidatorStub: EmailValidator
   addAccountStub: AddAccount
 }
@@ -35,7 +35,7 @@ interface SutTypes { // sut = system under test
 const makeSut = (): SutTypes => { // mocka(stub) pra ter só o retorno
   const emailValidatorStub = makeEmailValidator()
   const addAccountStub = MakeAddAccount()
-  const sut = new SingUpController(emailValidatorStub, addAccountStub)
+  const sut = new SignUpController(emailValidatorStub, addAccountStub)
   return {
     sut,
     emailValidatorStub,
