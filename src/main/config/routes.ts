@@ -9,6 +9,9 @@ export default (app: Express): void => {
 
 // fg traz o caminho de cada arquivo na pasta... dai usa um map pra percorrer cada e importar
 // fg.sync('**/src/main/routes/**routes.ts').map(async file => {
-//   const route = (await import(`../../../${file}`)).default // o import dentro deve ser feito dessa forma envolta em parenteses e não pode nomear, então ().default
+// o import dentro deve ser feito dessa forma envolta em parenteses e não pode nomear, então ().default
+//   const route = (await import(`../../../${file}`)).default
 //   route(router)
 // })
+
+// .default  = permite dar o nome ao import (como: import nome from ...)
