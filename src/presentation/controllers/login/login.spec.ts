@@ -77,7 +77,7 @@ describe('Login Controller', () => {
     const response = await sut.handle(makeHttpRequest())
     expect(response).toEqual(badRequest(new InvalidParamError('email')))
   })
-  test('should return 500 if an invalid email throws', async () => {
+  test('should return 500 if emailvalidator throws', async () => {
     const { sut, emailValidatorStub } = makeSut()
     jest.spyOn(emailValidatorStub, 'isValid').mockImplementationOnce(() => {
       throw new Error()
@@ -98,5 +98,11 @@ describe('Login Controller', () => {
     )
     const httpResponse = await sut.handle(makeHttpRequest())
     expect(httpResponse).toEqual(unauthorized())
+  })
+  test('should return 500 if an authentication throws', async () => {
+    const { sut, authenticationStub } = makeSut()
+    jest.spyOn(authenticationStub, 'auth').mockReturnValueOnce(new Promise((resolve, reject) => reject(new Error())))
+    const HttpResponse = await sut.handle(makeHttpRequest())
+    expect(HttpResponse).toEqual(serverError(new Error()))
   })
 })
