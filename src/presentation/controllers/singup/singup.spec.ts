@@ -1,6 +1,6 @@
 import { SignUpController } from './singup'
 import { MissingParamError, InvalidParamError, ServerError } from '../../errors'
-import { EmailValidator, AddAccount, AccountModel, AddAccountModel } from './singup-protocols'
+import { EmailValidator, AddAccount, AccountModel, AddAccountModel, Validation } from './singup-protocols'
 import { HttpRequest } from '../../protocols'
 import { ok, serverError, badRequest } from '../../helpers/http-helper'
 
@@ -23,7 +23,7 @@ const makeHttpRequest = (): HttpRequest => ({
   }
 })
 
-const MakeAddAccount = (): AddAccount => { // AddAccount não fica com protocolos pq é regra/uses case (criar layer Domain)
+const makeAddAccount = (): AddAccount => { // AddAccount não fica com protocolos pq é regra/uses case (criar layer Domain)
   class AddAccountStub implements AddAccount {
     async add (account: AddAccountModel): Promise<AccountModel> {
       const fakeAccount = makeFakeAccount()
@@ -31,6 +31,15 @@ const MakeAddAccount = (): AddAccount => { // AddAccount não fica com protocolo
     }
   }
   return new AddAccountStub()
+}
+
+const makeValidator = (): Validation => { // AddAccount não fica com protocolos pq é regra/uses case (criar layer Domain)
+  class ValidationStub implements Validation {
+    validate (input: any): Error {
+      return null
+    }
+  }
+  return new ValidationStub()
 }
 
 const makeFakeAccount = (): AccountModel => ({
@@ -44,16 +53,19 @@ interface SutTypes { // sut = system under test
   sut: SignUpController
   emailValidatorStub: EmailValidator
   addAccountStub: AddAccount
+  validationStub: Validation
 }
 
 const makeSut = (): SutTypes => { // mocka(stub) pra ter só o retorno
   const emailValidatorStub = makeEmailValidator()
-  const addAccountStub = MakeAddAccount()
-  const sut = new SignUpController(emailValidatorStub, addAccountStub)
+  const addAccountStub = makeAddAccount()
+  const validationStub = makeValidator()
+  const sut = new SignUpController(emailValidatorStub, addAccountStub, validationStub)
   return {
     sut,
     emailValidatorStub,
-    addAccountStub
+    addAccountStub,
+    validationStub
   }
 }
 
@@ -174,5 +186,12 @@ describe('SingUp Controller', () => {
     expect(httpResponse).toEqual(ok(makeFakeAccount()))
     expect(httpResponse.statusCode).toBe(200)
     expect(httpResponse.body).toEqual(makeFakeAccount())
+  })
+  test('should call Validation with correct values', async () => {
+    const { sut, validationStub } = makeSut()
+    const validateSpy = jest.spyOn(validationStub, 'validate')
+    const httpRequest = makeHttpRequest()
+    await sut.handle(httpRequest)
+    expect(validateSpy).toHaveBeenCalledWith(httpRequest.body)
   })
 })
